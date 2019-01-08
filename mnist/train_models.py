@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #training code based on https://github.com/keras-team/keras/blob/master/examples/mnist_cnn.py
-#keras version 2.2.4, tensorflow version 1.8.0
+#keras version 2.2.4, tensorflow version 1.7.0
 
 from __future__ import print_function
 import keras
@@ -9,6 +9,7 @@ from keras.models import Sequential, Model
 from keras.layers import Dense, Dropout, Flatten
 from keras.layers import Conv2D, MaxPooling2D, Activation
 from keras import backend as K
+from keras.callbacks import EarlyStopping
 
 import numpy as np
 import random
@@ -16,7 +17,7 @@ import os
 
 batch_size = 128
 num_classes = 10
-epochs = 12
+epochs = 50
 
 # input image dimensions
 img_rows, img_cols = 28, 28
@@ -33,23 +34,36 @@ else:
     x_test = x_test.reshape(x_test.shape[0], img_rows, img_cols, 1)
     input_shape = (img_rows, img_cols, 1)
 
-x_train = x_train.astype('float32')
+full_x_train = x_train.astype('float32')
 x_test = x_test.astype('float32')
-x_train /= 255
+full_x_train /= 255
 x_test /= 255
-print('x_train shape:', x_train.shape)
-print(x_train.shape[0], 'train samples')
+print('x_train shape:', full_x_train.shape)
+print(full_x_train.shape[0], 'train samples')
 print(x_test.shape[0], 'test samples')
 
+
 # convert class vectors to binary class matrices
-y_train = keras.utils.to_categorical(y_train, num_classes)
+full_y_train = keras.utils.to_categorical(y_train, num_classes)
 y_test = keras.utils.to_categorical(y_test, num_classes)
 
-num_models_to_train = 10
-for model_idx in range(num_models_to_train):
+output_file = "test_labels.txt"
+f = open(output_file, 'w')
+f.write("\n".join(["\t".join([str(x) for x in y]) for y in y_test]))
+f.close()
+os.system("gzip -f "+output_file)
+
+output_file = "train_labels.txt"
+f = open(output_file, 'w')
+f.write("\n".join(["\t".join([str(x) for x in y]) for y in full_y_train]))
+f.close()
+os.system("gzip -f "+output_file)
+
+for model_idx,train_set_size in enumerate([250, 500, 1000, 2000, 4000,
+                                           8000, 16000]):
     np.random.seed(model_idx*100)
     random.seed(model_idx*100)
-    print("On model",model_idx)
+    print("On train set size",train_set_size)
 
     model = Sequential()
     model.add(Conv2D(32, kernel_size=(3, 3),
@@ -67,21 +81,39 @@ for model_idx in range(num_models_to_train):
     model.compile(loss=keras.losses.categorical_crossentropy,
                   optimizer=keras.optimizers.Adadelta(),
                   metrics=['accuracy'])
-
+    x_train = full_x_train[:train_set_size] 
+    y_train = full_y_train[:train_set_size]
+    x_valid = full_x_train[-train_set_size:]
+    y_valid = full_y_train[-train_set_size:]
+    print("Mean y train:",np.mean(y_train, axis=0))
+    print("Mean y valid:",np.mean(y_valid, axis=0))
     model.fit(x_train, y_train,
               batch_size=batch_size,
               epochs=epochs,
-              verbose=1)
-    model.save("model_"+str(model_idx)+".h5")
+              verbose=1,
+              validation_data=(x_valid, y_valid),
+              callbacks=[EarlyStopping(
+                monitor='val_loss', patience=5,
+                restore_best_weights=True)])
+    model.save("model_trainsize-"+str(train_set_size)+".h5")
     presoftmax_model = Model(inputs=model.layers[0].input,
                              outputs=model.layers[-2].output)
-    test_preds = presoftmax_model.predict(x_test)
-    output_file = "preds_model_"+str(model_idx)+".txt"
+    test_presoftmax_preds = presoftmax_model.predict(x_test)
+
+    output_file = "test_preds_model_trainsize-"+str(train_set_size)+".txt"
     f = open(output_file, 'w')
     f.write("\n".join(["\t".join([str(x) for x in y])
-                                     for y in test_preds]))
+                                     for y in test_presoftmax_preds]))
     f.close()
     os.system("gzip -f "+output_file)
+
+    output_file = "train_preds_model_trainsize-"+str(train_set_size)+".txt"
+    f = open(output_file, 'w')
+    f.write("\n".join(["\t".join([str(x) for x in y])
+                                  for y in presoftmax_model.predict(full_x_train)]))
+    f.close()
+    os.system("gzip -f "+output_file)
+
     print('Test accuracy:', np.mean(np.argmax(test_presoftmax_preds,axis=-1)
                                     ==np.argmax(y_test,axis=-1)))
     
