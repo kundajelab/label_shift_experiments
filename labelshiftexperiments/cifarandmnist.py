@@ -60,6 +60,8 @@ def run_experiments(num_trials, seeds, alphas_and_samplesize,
                     adaptncalib_pairs, 
                     globprefix, valid_labels, test_labels):
 
+    draw_test_indices = get_func_to_draw_label_proportions(test_labels)
+
     alpha_to_samplesize_to_adaptername_to_metric_to_vals =(
         defaultdict(
             lambda: defaultdict(
