@@ -58,7 +58,9 @@ def run_experiments(num_trials, seeds, alphas_and_samplesize,
                     calibname_to_calibfactory,
                     imbalanceadaptername_to_imbalanceadapter,
                     adaptncalib_pairs, 
-                    globprefix, valid_labels, test_labels):
+                    validglobprefix,
+                    testglobprefix,
+                    valid_labels, test_labels):
 
     draw_test_indices = get_func_to_draw_label_proportions(test_labels)
 
@@ -79,9 +81,9 @@ def run_experiments(num_trials, seeds, alphas_and_samplesize,
             for trial_num in range(num_trials):   
                 rng = np.random.RandomState(seed*num_trials + trial_num)
                 test_preacts = read_preds(
-                    open(glob.glob(globprefix+str(seed)+"*.txt")[0]))
+                    open(glob.glob(testglobprefix++str(seed)+"*.txt")[0]))
                 valid_preacts = read_preds(
-                    open(glob.glob(globprefix+str(seed)+"*.txt")[0]))
+                    open(glob.glob(validglobprefix+str(seed)+"*.txt")[0]))
                 #let's also sample different validation sets
                 # according to the random seed AND the trialnum
                 sample_valid_indices = rng.choice(
@@ -132,7 +134,7 @@ def run_experiments(num_trials, seeds, alphas_and_samplesize,
                         alpha for x in range(10)])
                 elif (shifttype=='tweakone'):
                     altered_class_priors = np.full((10), (1-alpha)/9)
-                    altered_class_priors[3] = tweak_prob
+                    altered_class_priors[3] = alpha
                 else:
                     raise RuntimeError("Unsupported shift type",shifttype)
 
