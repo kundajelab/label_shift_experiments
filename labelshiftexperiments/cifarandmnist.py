@@ -122,10 +122,10 @@ def run_experiments(num_trials, seeds, alphas_and_samplesize,
                     calibname_to_calibvalidpreds[calibname] = (
                       calibfunc(sample_valid_preacts))
 
-                if (shifttype = 'dirichlet')
+                if (shifttype=='dirichlet')
                     altered_class_priors = rng.dirichlet([
                         alpha for x in range(10)])
-                elif (shifttype = 'tweakone'):
+                elif (shifttype=='tweakone'):
                     altered_class_priors = np.full((10), (1-alpha)/9)
                     altered_class_priors[3] = tweak_prob
                 else:
