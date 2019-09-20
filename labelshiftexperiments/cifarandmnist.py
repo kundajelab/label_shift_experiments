@@ -122,7 +122,7 @@ def run_experiments(num_trials, seeds, alphas_and_samplesize,
                     calibname_to_calibvalidpreds[calibname] = (
                       calibfunc(sample_valid_preacts))
 
-                if (shifttype=='dirichlet')
+                if (shifttype=='dirichlet'):
                     altered_class_priors = rng.dirichlet([
                         alpha for x in range(10)])
                 elif (shifttype=='tweakone'):
