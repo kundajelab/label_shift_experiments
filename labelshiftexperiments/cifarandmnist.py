@@ -58,7 +58,7 @@ def run_experiments(num_trials, seeds, alphas_and_samplesize,
                     calibname_to_calibfactory,
                     imbalanceadaptername_to_imbalanceadapter,
                     adaptncalib_pairs, 
-                    globprefix):
+                    globprefix, valid_labels, test_labels):
 
     alpha_to_samplesize_to_adaptername_to_metric_to_vals =(
         defaultdict(
