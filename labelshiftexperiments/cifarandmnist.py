@@ -1,6 +1,8 @@
 import glob
 import numpy as np
 from collections import defaultdict, OrderedDict
+import scipy
+import sys
 import abstention.calibration
 
 
@@ -19,8 +21,8 @@ def read_preds(fh):
                       for y in fh])
 
 
-def sample_from_probs_arr(arr_with_probs):
-    rand_num = np.random.random()
+def sample_from_probs_arr(arr_with_probs, rng):
+    rand_num = rng.uniform()
     cdf_so_far = 0
     for (idx, prob) in enumerate(arr_with_probs):
         cdf_so_far += prob
@@ -44,9 +46,9 @@ def get_func_to_draw_label_proportions(test_labels):
                     int(total_to_return*class_proportion),
                     replace=True))
         for i in range(total_to_return-len(indices_to_use)):
-            class_index = sample_from_probs_arr(label_proportions)
+            class_index = sample_from_probs_arr(label_proportions, rng)
             indices_to_use.append(
-                np.random.choice(test_class_to_indices[class_index]))
+                rng.choice(test_class_to_indices[class_index]))
         return indices_to_use
     return draw_test_indices
 
