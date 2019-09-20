@@ -52,7 +52,7 @@ def get_func_to_draw_label_proportions(test_labels):
 
 
 def run_experiments(num_trials, seeds, alphas_and_samplesize,
-                    shiftype,
+                    shifttype,
                     calibname_to_calibfactory,
                     imbalanceadaptername_to_imbalanceadapter,
                     adaptncalib_pairs, 
