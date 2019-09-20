@@ -81,7 +81,7 @@ def run_experiments(num_trials, seeds, alphas_and_samplesize,
             for trial_num in range(num_trials):   
                 rng = np.random.RandomState(seed*num_trials + trial_num)
                 test_preacts = read_preds(
-                    open(glob.glob(testglobprefix++str(seed)+"*.txt")[0]))
+                    open(glob.glob(testglobprefix+str(seed)+"*.txt")[0]))
                 valid_preacts = read_preds(
                     open(glob.glob(validglobprefix+str(seed)+"*.txt")[0]))
                 #let's also sample different validation sets
